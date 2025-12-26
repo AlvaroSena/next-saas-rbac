@@ -1,6 +1,10 @@
 import "fastify";
 
-import { Organization, Member } from "@prisma/client";
+import type { InferSelectModel } from "drizzle-orm";
+import { organizations, members } from "@/db/schema";
+
+export type Organization = InferSelectModel<typeof organizations>;
+export type Member = InferSelectModel<typeof members>;
 
 declare module "fastify" {
   export interface FastifyRequest {
