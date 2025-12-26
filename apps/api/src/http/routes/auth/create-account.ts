@@ -1,9 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
 import { BadRequestError } from "../_errors/bad-request-error";
+import { db } from "@/db";
+import { members, organizations, users } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
 
 export async function createAccount(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -22,11 +24,10 @@ export async function createAccount(app: FastifyInstance) {
     async (request, reply) => {
       const { name, email, password } = request.body;
 
-      const userWithSameEmail = await prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
+      const [userWithSameEmail] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email));
 
       if (userWithSameEmail) {
         throw new BadRequestError("User with same email already exists.");
@@ -34,28 +35,34 @@ export async function createAccount(app: FastifyInstance) {
 
       const [, domain] = email.split("@");
 
-      const autoJoinOrganization = await prisma.organization.findFirst({
-        where: {
-          domain,
-          shouldAttachUsersByDomain: true,
-        },
-      });
+      const [autoJoinOrganization] = await db
+        .select()
+        .from(organizations)
+        .where(
+          and(
+            eq(organizations.domain, domain),
+            eq(organizations.shouldAttachUsersByDomain, true)
+          )
+        );
 
       const passwordHash = await hash(password, 6);
 
-      await prisma.user.create({
-        data: {
-          name,
-          email,
-          passwordHash,
-          member_on: autoJoinOrganization
-            ? {
-                create: {
-                  organizationId: autoJoinOrganization.id,
-                },
-              }
-            : undefined,
-        },
+      await db.transaction(async (tx) => {
+        const [user] = await tx
+          .insert(users)
+          .values({
+            name,
+            email,
+            passwordHash,
+          })
+          .returning();
+
+        if (autoJoinOrganization) {
+          await tx.insert(members).values({
+            userId: user.id,
+            organizationId: autoJoinOrganization.id,
+          });
+        }
       });
 
       return reply.status(201).send();

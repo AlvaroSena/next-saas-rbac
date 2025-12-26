@@ -1,7 +1,9 @@
 import { FastifyInstance } from "fastify";
 import { UnauthorizedError } from "../routes/_errors/unauthorized-error";
 import { fastifyPlugin } from "fastify-plugin";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { members, organizations } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
 
 export const auth = fastifyPlugin(async (app: FastifyInstance) => {
   app.addHook("preHandler", async (request) => {
@@ -17,17 +19,30 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
 
     request.getUserMembership = async (slug: string) => {
       const userId = await request.getCurrentUserId();
-      const member = await prisma.member.findFirst({
-        where: {
-          userId,
+
+      const [member] = await db
+        .select({
+          id: members.id,
+          role: members.role,
+          userId: members.userId,
+          organizationId: members.organizationId,
+
           organization: {
-            slug,
+            id: organizations.id,
+            name: organizations.name,
+            slug: organizations.slug,
+            domain: organizations.domain,
+            shouldAttachUsersByDomain: organizations.shouldAttachUsersByDomain,
+            avatarUrl: organizations.avatarUrl,
+            createdAt: organizations.createdAt,
+            updatedAt: organizations.updatedAt,
+            ownerId: organizations.ownerId,
           },
-        },
-        include: {
-          organization: true,
-        },
-      });
+        })
+        .from(members)
+        .innerJoin(organizations, eq(members.organizationId, organizations.id))
+        .where(and(eq(members.userId, userId), eq(organizations.slug, slug)))
+        .limit(1);
 
       if (!member) {
         throw new UnauthorizedError(

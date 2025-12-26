@@ -3,8 +3,10 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 
 import { auth } from "@/http/middlewares/auth";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { roleSchema } from "@saas/auth";
+import { members, organizations } from "@/db/schema";
+import { db } from "@/db";
+import { eq } from "drizzle-orm";
 
 export function getOrganizations(app: FastifyInstance) {
   app
@@ -35,41 +37,20 @@ export function getOrganizations(app: FastifyInstance) {
       async (request) => {
         const userId = await request.getCurrentUserId();
 
-        const organizations = await prisma.organization.findMany({
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            avatarUrl: true,
-            members: {
-              select: {
-                role: true,
-              },
-              where: {
-                userId,
-              },
-            },
-          },
-          where: {
-            members: {
-              some: {
-                userId,
-              },
-            },
-          },
-        });
-
-        const organizationsWithUserRole = organizations.map(
-          ({ members, ...org }) => {
-            return {
-              ...org,
-              role: members[0].role,
-            };
-          }
-        );
+        const rows = await db
+          .select({
+            id: organizations.id,
+            name: organizations.name,
+            slug: organizations.slug,
+            avatarUrl: organizations.avatarUrl,
+            role: members.role,
+          })
+          .from(organizations)
+          .innerJoin(members, eq(members.organizationId, organizations.id))
+          .where(eq(members.userId, userId));
 
         return {
-          organizations: organizationsWithUserRole,
+          organizations: rows,
         };
       }
     );

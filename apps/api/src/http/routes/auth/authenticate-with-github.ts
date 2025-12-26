@@ -1,9 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { BadRequestError } from "../_errors/bad-request-error";
 import { env } from "@saas/env";
+import { db } from "@/db";
+import { accounts, users } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export async function authenticateWithGithub(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -85,39 +87,40 @@ export async function authenticateWithGithub(app: FastifyInstance) {
         );
       }
 
-      let user = await prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
+      let [user] = await db.select().from(users).where(eq(users.email, email));
 
       if (!user) {
-        user = await prisma.user.create({
-          data: {
+        const [userCreated] = await db
+          .insert(users)
+          .values({
             name,
             email,
             avatarUrl,
-          },
-        });
+          })
+          .returning();
+
+        user = userCreated;
       }
 
-      let account = await prisma.account.findUnique({
-        where: {
-          provider_userId: {
-            provider: "GITHUB",
-            userId: user.id,
-          },
-        },
-      });
+      let [account] = await db
+        .select()
+        .from(accounts)
+        .where(
+          and(eq(accounts.provider, "GITHUB"), eq(accounts.userId, user.id))
+        )
+        .limit(1);
 
       if (!account) {
-        account = await prisma.account.create({
-          data: {
+        const [createdAccount] = await db
+          .insert(accounts)
+          .values({
             provider: "GITHUB",
             providerAccountId: githubId,
             userId: user.id,
-          },
-        });
+          })
+          .returning();
+
+        account = createdAccount;
       }
 
       const token = await reply.jwtSign(

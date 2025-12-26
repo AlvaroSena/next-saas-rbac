@@ -3,9 +3,6 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 
 import { auth } from "@/http/middlewares/auth";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { BadRequestError } from "../_errors/bad-request-error";
-import { createSlug } from "@/utils/create-slug";
 import { roleSchema } from "@saas/auth";
 
 export function getMembership(app: FastifyInstance) {

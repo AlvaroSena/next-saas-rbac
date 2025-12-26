@@ -1,9 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { BadRequestError } from "../_errors/bad-request-error";
 import { auth } from "@/http/middlewares/auth";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function getProfile(app: FastifyInstance) {
   app
@@ -31,17 +33,15 @@ export async function getProfile(app: FastifyInstance) {
       async (request, reply) => {
         const userId = await request.getCurrentUserId();
 
-        const user = await prisma.user.findUnique({
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-          },
-          where: {
-            id: userId,
-          },
-        });
+        const [user] = await db
+          .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+            avatarUrl: users.avatarUrl,
+          })
+          .from(users)
+          .where(eq(users.id, userId));
 
         if (!user) {
           throw new BadRequestError("User not found");

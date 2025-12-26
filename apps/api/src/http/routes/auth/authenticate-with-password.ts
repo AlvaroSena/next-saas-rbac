@@ -1,9 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import { BadRequestError } from "../_errors/bad-request-error";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export async function authenticateWithPassword(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -26,11 +28,10 @@ export async function authenticateWithPassword(app: FastifyInstance) {
     async (request, reply) => {
       const { email, password } = request.body;
 
-      const userFromEmail = await prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
+      const [userFromEmail] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email));
 
       if (!userFromEmail) {
         throw new BadRequestError("Invalid credentials.");

@@ -1,9 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import { z } from "zod";
 
 import { auth } from "@/http/middlewares/auth";
-import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { organizations, members } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { BadRequestError } from "../_errors/bad-request-error";
 import { createSlug } from "@/utils/create-slug";
 
@@ -34,39 +36,49 @@ export function createOrganization(app: FastifyInstance) {
         const userId = await request.getCurrentUserId();
         const { name, domain, shouldAttachUsersByDomain } = request.body;
 
-        if (domain) {
-          const organizationByDomain = await prisma.organization.findUnique({
-            where: {
-              domain,
-            },
-          });
+        if (!domain) {
+          throw new BadRequestError("Domain is required.");
+        }
 
-          if (organizationByDomain) {
-            throw new BadRequestError(
-              "Another organization with same domain already exists."
-            );
-          }
+        const existingOrg = await db
+          .select({ id: organizations.id })
+          .from(organizations)
+          .where(eq(organizations.domain, domain))
+          .limit(1)
+          .then((rows) => rows[0]);
 
-          const organization = await prisma.organization.create({
-            data: {
+        if (existingOrg) {
+          throw new BadRequestError(
+            "Another organization with same domain already exists."
+          );
+        }
+
+        const organizationId = await db.transaction(async (tx) => {
+          // cria organização
+          const [organization] = await tx
+            .insert(organizations)
+            .values({
               name,
               slug: createSlug(name),
               domain,
               shouldAttachUsersByDomain,
               ownerId: userId,
-              members: {
-                create: {
-                  userId,
-                  role: "ADMIN",
-                },
-              },
-            },
+            })
+            .returning({ id: organizations.id });
+
+          // cria membro ADMIN
+          await tx.insert(members).values({
+            organizationId: organization.id,
+            userId,
+            role: "ADMIN",
           });
 
-          return reply.status(201).send({
-            organizationId: organization.id,
-          });
-        }
+          return organization.id;
+        });
+
+        return reply.status(201).send({
+          organizationId,
+        });
       }
     );
 }

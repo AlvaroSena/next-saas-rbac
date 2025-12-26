@@ -1,7 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { prisma } from "@/lib/prisma";
+
+import { db } from "@/db";
+import { tokens, users } from "@/db/schema";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 export async function requestPasswordRecover(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -21,23 +24,25 @@ export async function requestPasswordRecover(app: FastifyInstance) {
     async (request, reply) => {
       const { email } = request.body;
 
-      const userFromEmail = await prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
+      const [userFromEmail] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email));
 
       if (!userFromEmail) {
         // We don't want people to know if user really exists.
         return reply.status(201).send();
       }
 
-      const { id: code } = await prisma.token.create({
-        data: {
+      const [createdToken] = await db
+        .insert(tokens)
+        .values({
           type: "PASSWORD_RECOVER",
           userId: userFromEmail.id,
-        },
-      });
+        })
+        .returning();
+
+      const code = createdToken.id;
 
       console.log("Recover password token ", code);
 

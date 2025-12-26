@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "pnpm env:load tsx watch src/http/server.ts",
-    "db:migrate": "pnpm env:load prisma migrate dev",
-    "db:studio": "pnpm env:load prisma studio",
+    "db:generate": "pnpm env:load drizzle-kit generate",
+    "db:migrate": "pnpm env:load drizzle-kit migrate",
+    "db:push": "pnpm env:load drizzle-kit push",
+    "db:studio": "pnpm env:load drizzle-kit studio",
+    "db:seed": "tsx src/db/seed.ts",
     "env:load": "dotenv -e ../../.env --"
   },
   "dependencies": {
@@ -12,13 +15,15 @@
     "@fastify/jwt": "^10.0.0",
     "@fastify/swagger": "^9.5.2",
     "@fastify/swagger-ui": "^5.2.3",
-    "@prisma/client": "6.18.0",
     "@saas/auth": "workspace:*",
     "@saas/env": "workspace:*",
     "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
     "fastify": "^5.6.1",
     "fastify-plugin": "^5.1.0",
     "fastify-type-provider-zod": "^6.1.0",
+    "pg": "^8.16.3",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -27,12 +32,10 @@
     "@saas/prettier": "workspace:*",
     "@saas/tsconfig": "workspace:*",
     "@types/node": "^24.9.2",
+    "@types/pg": "^8.16.0",
     "dotenv-cli": "^11.0.0",
-    "prisma": "^6.18.0",
+    "drizzle-kit": "^0.31.8",
     "tsx": "^4.20.6"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   },
   "prettier": "@saas/prettier",
   "eslintConfig": {
