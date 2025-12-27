@@ -111,7 +111,7 @@ export const invites = pgTable(
       .defaultNow()
       .notNull(),
 
-    userId: uuid("user_id").references(() => users.id),
+    authorId: uuid("author_id").references(() => users.id),
     organizationId: uuid("organization_id")
       .notNull()
       .references(() => organizations.id, {

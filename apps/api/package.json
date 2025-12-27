@@ -2,7 +2,7 @@
   "name": "@saas/api",
   "version": "1.0.0",
   "scripts": {
-    "dev": "pnpm env:load tsx watch src/http/server.ts",
+    "dev": "pnpm env:load tsx --watch src/http/server.ts",
     "db:generate": "pnpm env:load drizzle-kit generate",
     "db:migrate": "pnpm env:load drizzle-kit migrate",
     "db:push": "pnpm env:load drizzle-kit push",

@@ -7,61 +7,63 @@ import { db } from "@/db";
 import { projects, users } from "@/db/schema";
 import { getUsersPermissions } from "@/utils/get-user-permissions";
 import { UnauthorizedError } from "../_errors/unauthorized-error";
-import { and, eq } from "drizzle-orm";
-import { NotFoundError } from "../_errors/not-found-error";
+import { desc, eq } from "drizzle-orm";
 
-export function getProject(app: FastifyInstance) {
+export function getProjects(app: FastifyInstance) {
   app
     .withTypeProvider<ZodTypeProvider>()
     .register(auth)
     .get(
-      "/organizations/:orgSlug/projects/:projectSlug",
+      "/organizations/:slug/projects",
       {
         schema: {
           tags: ["projects"],
-          summary: "Get a project details",
+          summary: "Get all organization projects",
           security: [{ bearerAuth: [] }],
           params: z.object({
-            orgSlug: z.string(),
-            projectSlug: z.uuid(),
+            slug: z.string(),
           }),
           response: {
             200: z.object({
-              project: z.object({
-                id: z.uuid(),
-                name: z.string(),
-                description: z.string(),
-                slug: z.string(),
-                ownerId: z.uuid(),
-                avatarUrl: z.string().nullable(),
-                organizationId: z.string(),
-                owner: z.object({
-                  id: z.string(),
-                  name: z.string().nullable(),
+              projects: z.array(
+                z.object({
+                  id: z.uuid(),
+                  name: z.string(),
+                  description: z.string(),
+                  slug: z.string(),
+                  ownerId: z.uuid(),
                   avatarUrl: z.string().nullable(),
-                }),
-              }),
+                  organizationId: z.string(),
+                  createdAt: z.date(),
+
+                  owner: z.object({
+                    id: z.string(),
+                    name: z.string().nullable(),
+                    avatarUrl: z.string().nullable(),
+                  }),
+                })
+              ),
             }),
           },
         },
       },
       async (request, reply) => {
-        const { orgSlug, projectSlug } = request.params;
+        const { slug } = request.params;
 
         const userId = await request.getCurrentUserId();
 
         const { organization, membership } =
-          await request.getUserMembership(orgSlug);
+          await request.getUserMembership(slug);
 
         const { cannot } = getUsersPermissions(userId, membership.role);
 
         if (cannot("get", "Project")) {
           throw new UnauthorizedError(
-            "You are not allowed to see this project."
+            "You are not allowed to see this projects."
           );
         }
 
-        const [project] = await db
+        const rows = await db
           .select({
             id: projects.id,
             name: projects.name,
@@ -70,6 +72,7 @@ export function getProject(app: FastifyInstance) {
             ownerId: projects.ownerId,
             avatarUrl: projects.avatarUrl,
             organizationId: projects.organizationId,
+            createdAt: projects.createdAt,
 
             owner: {
               id: users.id,
@@ -78,19 +81,11 @@ export function getProject(app: FastifyInstance) {
             },
           })
           .from(projects)
-          .innerJoin(users, eq(projects.ownerId, userId))
-          .where(
-            and(
-              eq(projects.slug, projectSlug),
-              eq(projects.organizationId, organization.id)
-            )
-          );
+          .innerJoin(users, eq(users.id, projects.ownerId))
+          .where(eq(projects.organizationId, organization.id))
+          .orderBy(desc(projects.createdAt));
 
-        if (!project) {
-          throw new NotFoundError("Project not found");
-        }
-
-        return reply.send({ project });
+        return reply.send({ projects: rows });
       }
     );
 }
