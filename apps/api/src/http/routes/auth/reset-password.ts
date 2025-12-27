@@ -38,12 +38,16 @@ export async function resetPassword(app: FastifyInstance) {
 
       const passwordHash = await hash(password, 6);
 
-      await db
-        .update(users)
-        .set({
-          passwordHash,
-        })
-        .where(eq(users.id, tokenFromCode.userId));
+      await db.transaction(async (tx) => {
+        await tx
+          .update(users)
+          .set({
+            passwordHash,
+          })
+          .where(eq(users.id, tokenFromCode.userId));
+
+        await tx.delete(tokens).where(eq(tokens.id, code));
+      });
 
       return reply.status(204).send();
     }

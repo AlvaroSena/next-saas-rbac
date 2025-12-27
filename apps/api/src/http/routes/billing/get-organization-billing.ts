@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getUsersPermissions } from "@/utils/get-user-permissions";
 import { UnauthorizedError } from "../_errors/unauthorized-error";
 import { db } from "@/db";
-import { members, organizations, projects } from "@/db/schema";
+import { members, projects } from "@/db/schema";
 import { and, count, eq, ne } from "drizzle-orm";
 
 export function getOrganizationBilling(app: FastifyInstance) {

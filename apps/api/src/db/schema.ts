@@ -1,3 +1,4 @@
+import { foreignKey } from "drizzle-orm/gel-core";
 import {
   pgTable,
   pgEnum,
