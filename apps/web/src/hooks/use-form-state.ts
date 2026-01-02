@@ -8,7 +8,7 @@ interface FormSate {
 
 export function useFormState(
   action: (data: FormData) => Promise<FormSate>,
-  onSuccess: () => Promise<void> | void,
+  onSuccess?: () => Promise<void> | void,
   initialState?: FormSate
 ) {
   const [isPending, startTransition] = useTransition();

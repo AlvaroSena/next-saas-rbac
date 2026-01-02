@@ -15,7 +15,7 @@ export function updateOrganization(app: FastifyInstance) {
   app
     .withTypeProvider<ZodTypeProvider>()
     .register(auth)
-    .post(
+    .put(
       "/organizations/:slug",
       {
         schema: {

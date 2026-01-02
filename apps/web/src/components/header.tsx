@@ -4,12 +4,13 @@ import { OrganizationSwitcher } from "./organization-switcher";
 import { ability } from "@/auth/auth";
 import { Separator } from "./ui/separator";
 import { ThemeSwitcher } from "./theme/theme-switcher";
+import { ProjectSwitcher } from "./project-switcher";
 
 export async function Header() {
   const permissions = await ability();
 
   return (
-    <header className="mx-auto flex max-w-300 items-center justify-between border-b pb-4">
+    <header className="mx-auto flex max-w-300 items-center justify-between">
       <div className="flex items-center gap-3">
         <Slack className="light:invert" />
 
@@ -17,7 +18,12 @@ export async function Header() {
 
         <OrganizationSwitcher />
 
-        {permissions?.can("get", "Project") && <p>projetos</p>}
+        {permissions?.can("get", "Project") && (
+          <>
+            <Slash className="text-border size-3 -rotate-24" />
+            <ProjectSwitcher />
+          </>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
