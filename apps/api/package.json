@@ -9,7 +9,7 @@
     "db:studio": "pnpm env:load drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
     "env:load": "dotenv -e ../../.env --",
-    "build": "tsc",
+    "build": "tsup",
     "start": "node dist/http/server.js"
   },
   "dependencies": {

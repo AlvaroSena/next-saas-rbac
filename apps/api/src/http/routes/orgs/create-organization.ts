@@ -64,7 +64,7 @@ export function createOrganization(app: FastifyInstance) {
               shouldAttachUsersByDomain,
               ownerId: userId,
             })
-            .returning({ id: organizations.id });
+            .returning();
 
           // cria membro ADMIN
           await tx.insert(members).values({
