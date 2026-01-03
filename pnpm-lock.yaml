@@ -29,6 +29,9 @@ importers:
       '@fastify/swagger-ui':
         specifier: ^5.2.3
         version: 5.2.3
+      '@neondatabase/serverless':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@saas/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -43,7 +46,7 @@ importers:
         version: 17.2.3
       drizzle-orm:
         specifier: ^0.45.1
-        version: 0.45.1(@prisma/client@6.18.0(prisma@6.18.0(typescript@5.9.2))(typescript@5.9.2))(@types/pg@8.16.0)(pg@8.16.3)(prisma@6.18.0(typescript@5.9.2))
+        version: 0.45.1(@neondatabase/serverless@1.0.2)(@prisma/client@6.18.0(prisma@6.18.0(typescript@5.9.2))(typescript@5.9.2))(@types/pg@8.16.0)(pg@8.16.3)(prisma@6.18.0(typescript@5.9.2))
       fastify:
         specifier: ^5.6.1
         version: 5.6.1
@@ -824,6 +827,10 @@ packages:
     resolution: {integrity: sha512-9I2Zn6+NJLfaGoz9jN3lpwDgAYvfGeNYdbAIjJOqzs4Tpc+VU3Jqq4IofSUBKajiDS8k9fZIg18/z13mpk1bsA==}
     engines: {node: '>=8'}
 
+  '@neondatabase/serverless@1.0.2':
+    resolution: {integrity: sha512-I5sbpSIAHiB+b6UttofhrN/UJXII+4tZPAq1qugzwCwLIL8EZLV7F/JyHUrEIiGgQpEXzpnjlJ+zwcEhheGvCw==}
+    engines: {node: '>=19.0.0'}
+
   '@next/env@15.4.1':
     resolution: {integrity: sha512-DXQwFGAE2VH+f2TJsKepRXpODPU+scf5fDbKOME8MMyeyswe4XwgRdiiIYmBfkXU+2ssliLYznajTrOQdnLR5A==}
 
@@ -1502,6 +1509,9 @@ packages:
 
   '@types/node@20.19.27':
     resolution: {integrity: sha512-N2clP5pJhB2YnZJ3PIHFk5RkygRX5WO/5f0WC08tp0wd+sv0rsJk3MqWn3CbNmT2J505a5336jaQj4ph1AdMug==}
+
+  '@types/node@22.19.3':
+    resolution: {integrity: sha512-1N9SBnWYOJTrNZCdh/yJE+t910Y128BoyY+zBLWhL3r0TYzlTmFdXrPwHL9DyFZmlEXNQQolTZh3KHV31QDhyA==}
 
   '@types/node@24.9.2':
     resolution: {integrity: sha512-uWN8YqxXxqFMX2RqGOrumsKeti4LlmIMIyV0lgut4jx7KQBcBiW6vkDtIBvHnHIquwNfJhk8v2OtmO8zXWHfPA==}
@@ -4062,6 +4072,11 @@ snapshots:
 
   '@lukeed/ms@2.0.2': {}
 
+  '@neondatabase/serverless@1.0.2':
+    dependencies:
+      '@types/node': 22.19.3
+      '@types/pg': 8.16.0
+
   '@next/env@15.4.1': {}
 
   '@next/swc-darwin-arm64@15.4.1':
@@ -4681,6 +4696,10 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/node@22.19.3':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@24.9.2':
     dependencies:
       undici-types: 7.16.0
@@ -5162,8 +5181,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.45.1(@prisma/client@6.18.0(prisma@6.18.0(typescript@5.9.2))(typescript@5.9.2))(@types/pg@8.16.0)(pg@8.16.3)(prisma@6.18.0(typescript@5.9.2)):
+  drizzle-orm@0.45.1(@neondatabase/serverless@1.0.2)(@prisma/client@6.18.0(prisma@6.18.0(typescript@5.9.2))(typescript@5.9.2))(@types/pg@8.16.0)(pg@8.16.3)(prisma@6.18.0(typescript@5.9.2)):
     optionalDependencies:
+      '@neondatabase/serverless': 1.0.2
       '@prisma/client': 6.18.0(prisma@6.18.0(typescript@5.9.2))(typescript@5.9.2)
       '@types/pg': 8.16.0
       pg: 8.16.3
