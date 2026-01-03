@@ -16,7 +16,7 @@ export function ThemeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="ghost" size="icon">
           {resolvedTheme === "light" ? (
             <Sun className="size-4" />
           ) : (
