@@ -113,4 +113,6 @@ app.register(getPendingInvites);
 
 app.register(getOrganizationBilling);
 
-app.listen({ port: env.PORT });
+const port = Number(process.env.PORT) || 3333;
+
+app.listen({ port });
