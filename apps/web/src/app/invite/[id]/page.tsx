@@ -1,3 +1,7 @@
+import Link from "next/link";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
 import { auth, isAuthenticated } from "@/auth/auth";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -5,23 +9,18 @@ import { Separator } from "@/components/ui/separator";
 import { acceptInvite } from "@/http/accept-invite";
 import { getInvite } from "@/http/get-invite";
 import { AvatarFallback } from "@radix-ui/react-avatar";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import { CheckCircle, LogIn, LogOut } from "lucide-react";
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 dayjs.extend(relativeTime);
 
-interface InvitePageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default async function InvitePage({ params }: InvitePageProps) {
-  const inviteId = params.id;
+export default async function InvitePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: inviteId } = await params;
 
   const { invite } = await getInvite(inviteId);
   const isUserAuthenticated = await isAuthenticated();
