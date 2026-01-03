@@ -113,6 +113,12 @@ app.register(getPendingInvites);
 
 app.register(getOrganizationBilling);
 
+app.get("/", () => {
+  return "OK";
+});
+
 const port = Number(process.env.PORT) || 3333;
 
-app.listen({ port });
+app.listen({ port, host: "0.0.0.0" }).then(() => {
+  console.log(`Server is running on port ${port}`);
+});
