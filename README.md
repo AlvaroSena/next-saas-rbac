@@ -48,6 +48,45 @@ It is built with **Node.js**, **Fastify**, **Next.js-ready architecture**, **Dri
 └── README.md
 ```
 
+flowchart TB
+    Root["Monorepo (pnpm workspace)"]
+
+    %% Root level
+    Root --> Apps["apps/"]
+    Root --> Packages["packages/"]
+    Root --> Config["config/"]
+    Root --> RootPkg["package.json"]
+    Root --> Workspace["pnpm-workspace.yaml"]
+    Root --> Readme["README.md"]
+
+    %% Apps
+    Apps --> Api["api/ (Fastify API)"]
+    Api --> ApiSrc["src/"]
+    Api --> Drizzle["drizzle/"]
+    Api --> ApiDocker["docker-compose.yml"]
+    Api --> ApiPkg["package.json"]
+
+    %% Packages
+    Packages --> Auth["auth/ (RBAC & Authorization)"]
+    Auth --> AuthSrc["src/"]
+    Auth --> AuthPkg["package.json"]
+    Auth -.->|CASL| Api
+
+    %% Config
+    Config --> ESLint["eslint/"]
+    Config --> Prettier["prettier/"]
+    Config --> TS["typescript/"]
+
+    %% Shared configs usage
+    ESLint -.-> Api
+    Prettier -.-> Api
+    TS -.-> Api
+
+    ESLint -.-> Auth
+    Prettier -.-> Auth
+    TS -.-> Auth
+
+
 ---
 
 ## 📦 Apps
